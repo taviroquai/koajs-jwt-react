@@ -35,9 +35,9 @@ Auth.client.configure({
 });
 
 // Login user
-Auth.client.login(username.value, password.value)
-  .then(data => { window.location.reload() }) // Success
-  .catch(data => console.log(data) )          // Error message
+Auth.client.login(username, password)
+  .then(data => window.location.reload()) // Success
+  .catch(data => console.log(data) )      // Error message
 
 // Get authentication data
 Auth.client.getData();
@@ -45,7 +45,7 @@ Auth.client.getData();
 // Use JWT in fetch
 const headers = Auth.client.getHeaders();
 fetch('bla', { headers })
-  .then(...) // Success - user is still logged
+  .then(...)  // Success - user is still logged
   .catch(...) // Http 401/403 - user is logged out
 
 // Logout user
