@@ -28,7 +28,7 @@ router.post('/login', loginRoute);
 
 ## Client usage
 ```javascript
-import AuthService from 'koajs-jwt-react';
+import Auth from 'koajs-jwt-react';
 
 // Configure authentication
 const options = {
