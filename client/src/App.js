@@ -1,52 +1,69 @@
 import React, { useState } from 'react';
 import LoginForm from './LoginForm';
 import AuthService from './AuthService';
+import ResourceService from './ResourceService';
 import './App.css';
 
-const apiUrl = '//localhost:3001';
-const cookieOpts = { path: '/', maxAge: 5 * 1 };
-
-function login(username, password, setError) {
-  const body = JSON.stringify({ username, password });
-  
-  AuthService.post(apiUrl + '/login', body, data => {
-    if (data.message) return setError(data.message || '');
-
-    // OK!
-    cookieOpts.maxAge = data.maxAge;
-    AuthService.cookies.set('user', data.token, cookieOpts);
-    window.location.reload();
-  }).catch(error => {
-    setError(error);
-  });
-}
+// Set authentication options
+AuthService.configure({
+  loginUrl: 'http://localhost:3001/login',
+  cookieOpts: { path: '/', maxAge: 5 * 1 },
+  storageNS: 'user',
+  putData: (username, token) => ({ username, token })
+});
 
 function App() {
-  const [user] = useState(AuthService.cookies.get('user'));
+  const [data] = useState(AuthService.getData());
   const [error, setError] = useState('');
+  const [resource, setResource] = useState('');
 
+  // Login action
   const loginAction = (e) => {
     e.preventDefault();
     const { username, password } = e.target.elements;
-    login(username.value, password.value, setError);
+
+    // Remote login
+    AuthService.login(username.value, password.value)
+    
+    // Success
+    .then(data => {
+      window.location.reload();
+    })
+    
+    // Error message
+    .catch(data => {
+      setError(data.message || 'Service unavailable');
+    });
   }
 
-  const logoutAction = () => AuthService.logout();
+  // Logout action
+  const logoutAction = () => {
+    AuthService.logout();
+    window.location.reload(true);
+  }
 
+  // Test protected resource
+  const actionGetResource = (uri) => {
+    ResourceService.remote(uri)
+      .then(res => res.text())
+      .then(data => setResource(data));
+  }
+  
   return (
     <div className="App">
       
-      { !user ? (
+      { !data.username ? (
         <LoginForm
           onSubmit={loginAction.bind(this)}
           error={error}
         />
       ) : (
-        <button onClick={logoutAction}>Logout</button>
+        <button onClick={logoutAction}>Logout { data.username }</button>
       )}
       
-      <a href={apiUrl + '/public'}>public</a>&nbsp;
-      <a href={apiUrl + '/protected'}>protected</a>
+      <button onClick={e => actionGetResource('/public')}>public</button>&nbsp;
+      <button onClick={e => actionGetResource('/protected')}>protected</button>&nbsp;
+      { resource && <p>Resource: { resource }</p> }
     </div>
   );
 }

@@ -1,29 +1,29 @@
-const { koa, router } = require('./server');
-const { configAuth, loginRoute, validateAuth } = require('./auth');
+const { koa, router, start } = require('./server');
+const configAuth = require('./auth');
 
-// Unprotected middleware
+// Unprotected route
 router.get('/public', ctx => {
   ctx.body = 'unprotected\n';
 });
 
+// Other route
+router.get('/protected', (ctx) => {
+  const { username } = ctx.state.user.data;
+  ctx.body = `protected. access by ${username}\n`;
+});
+
 // Add authentication
-configAuth({
+const authOptions = {
   secret: 'jwt',
   maxAge: (60 * 60 * 12),
-  validate: body => body.password !== 'admin' ? false : body
-});
+  unless: [/^\/public/, /^\/login/],
+  validateCreateRequest: request => {
+    const { body } = request;
+    return body.password !== 'admin' ? false : body;
+  }
+};
+const loginRoute = configAuth(koa, authOptions);
 router.post('/login', loginRoute);
-router.get('/protected', validateAuth);
 
-// Add other protected routes
-router.get('/protected', (ctx) => {
-  ctx.body = 'protected\n';
-});
-
-// Add router
-koa.use(router.routes());
-koa.use(router.allowedMethods());
-
-// Start server
-const httpPort = 3001;
-koa.listen(httpPort, () => console.log('Server ready at port ' + httpPort));
+const port = 3001;
+start(port, () => console.log('Server ready at port ' + port));

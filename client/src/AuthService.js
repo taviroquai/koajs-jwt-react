@@ -3,31 +3,56 @@ import Cookies from 'universal-cookie';
 // Setup required dependencies
 const cookies = new Cookies();
 
+let config = {
+  loginUrl: 'http://localhost:3001/login',
+  cookieOpts: { path: '/', maxAge: 5 * 1 },
+  storageNS: 'user',
+  putData: (username, token) => ({ username, token })
+}
+
+const configure = (options) => {
+  options = Object.assign(config, options);
+}
+
 function logout() {
-  cookies.remove('user');
-  window.location.reload(true);
+  const previous = cookies.get(config.storageNS);
+  cookies.remove(config.storageNS);
+  return previous;
 }
 
-function post(url, body, cb, headers = { 'Content-Type': 'application/json' }) {
-  const requestOptions = {
-    method: 'POST',
-    headers,
-    body
-  };
-  return fetch(url, requestOptions)
+function login(username, password) {
+  const headers = { 'Content-Type': 'application/json' };
+  const body = JSON.stringify({ username, password });
+  const requestOptions = { method: 'POST', headers, body };
+  return fetch(config.loginUrl, requestOptions)
     .then(res => {
-      return res.text().then(text => {
-        const data = text && JSON.parse(text);
-        if (!res.ok) {
-          if ([401, 403].indexOf(res.status) !== -1) return logout();
-          
-          const error = (data && data.message) || res.statusText;
-          return Promise.reject(error);
-        }
-        return data;
-      });
+      if (!res.ok) return Promise.reject('Service unavailable');
+      return res;
     })
-    .then(cb);
+    .then(res => res.json())
+    .then(data => {
+      if (!data.token) {
+        return Promise.reject(data);
+      } else {
+        config.cookieOpts.maxAge = data.maxAge;
+        cookies.set(
+          config.storageNS,
+          config.putData(username, data.token),
+          config.cookieOpts
+        );
+      };
+    });
 }
 
-export default { logout, post, cookies }
+function getData() {
+  return cookies.get(config.storageNS) || {};
+}
+
+function getHeaders() {
+  const data = getData();
+  const headers = {};
+  if (data) headers['Authorization'] = `Bearer ${data.token}`;
+  return headers;
+}
+
+export default { configure, login, logout, getData, getHeaders }

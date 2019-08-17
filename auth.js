@@ -1,40 +1,35 @@
 const jsonwebtoken = require('jsonwebtoken');
+const jwtMiddleware = require('koa-jwt');
 
 let config = {
   secret: 'jwt',
   maxAge: (60 * 60 * 12),
-  validate: () => ({})
+  unless: ['^\/'],
+  validateCreateRequest: () => ({}),
+  invalidCreateMessage: 'Invalid password'
 };
-
-const configAuth = (userConfig) => {
-  config = Object.assign({}, userConfig);
-}
 
 const loginRoute = (ctx, next) => {
-  if (ctx.url.match(/login/)) {
-    const { body } = ctx.request;
-    const validatedData = config.validate(body);
-    if (!validatedData) return ctx.body = { message: 'Invalid password' };
+  const validatedData = config.validateCreateRequest(ctx.request);
+  if (!validatedData) return ctx.body = { message: config.invalidCreateMessage };
 
-    // Create JWT token
-    const token = jsonwebtoken.sign({
-      data: validatedData,
-      exp: Math.floor(Date.now() / 1000) + config.maxAge,
-    }, config.secret);
-    ctx.body = { token, maxAge: config.maxAge };
-  } else return next();
+  // Create JWT token
+  const token = jsonwebtoken.sign({
+    data: validatedData,
+    exp: Math.floor(Date.now() / 1000) + config.maxAge,
+  }, config.secret);
+  ctx.body = { token, maxAge: config.maxAge };
 };
 
-const validateAuth = (ctx, next) => {
-  const token = ctx.cookies.get('user');
-  if (!token) return ctx.status = 401;
-  
-  try {
-    ctx.state['user'] = jsonwebtoken.verify(token, config.secret);
-    return next();
-  } catch (e) {
-    ctx.status = 401;
-  }
+const validateAuth = () => {
+  return jwtMiddleware({ secret: config.secret })
+    .unless({ path: config.unless })
 };
 
-module.exports = { configAuth, loginRoute, validateAuth };
+const configure = (koa, options) => {
+  config = Object.assign(config, options);
+  koa.use(validateAuth());
+  return loginRoute;
+}
+
+module.exports = configure;
