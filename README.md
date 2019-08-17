@@ -4,12 +4,13 @@ Minimal JWT authentication with KoaJS and React
 
 ## Server usage
 ```javascript
+
 // app is the koa application
 // router is the main router
 const Auth = require('koajs-jwt-react');
 
 // Add authentication
-const authOptions = {
+const options = {
   secret: 'jwt',
   maxAge: (60 * 60 * 12),
   unless: [/^\/public/, /^\/login/],
@@ -18,7 +19,7 @@ const authOptions = {
     return body.password !== 'admin' ? false : body;
   }
 };
-const loginRoute = Auth.server.configure(app, authOptions);
+const loginRoute = Auth.server.configure(app, options);
 router.post('/login', loginRoute);
 ```
 
@@ -27,12 +28,13 @@ router.post('/login', loginRoute);
 import AuthService from 'koajs-jwt-react';
 
 // Configure authentication
-Auth.client.configure({
+const options = {
   loginUrl: 'http://localhost:3001/login',
   cookieOpts: { path: '/', maxAge: 5 * 1 },
   storageNS: 'user',
   putData: (username, token) => ({ username, token })
-});
+}
+Auth.client.configure(options);
 
 // Login user
 Auth.client.login(username, password)
