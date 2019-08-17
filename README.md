@@ -1,6 +1,8 @@
 #koajs-jwt-react
 
-Minimal JWT authentication with KoaJS and React
+Minimal JWT authentication with KoaJS and React  
+
+Checkout the **demo** folder to see how it can be used.
 
 ## Server usage
 ```javascript
