@@ -51,4 +51,7 @@ AuthService.getData();
 const headers = AuthService.getHeaders();
 fetch('bla', { headers }).then(...);
 
+// Logout user
+AuthService.getData();
+
 ```
