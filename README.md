@@ -1,17 +1,12 @@
-# Minimal JWT authentication with KoaJS and React
+#koajs-jwt-react
 
-```
-$ npm install
-$ nohup node index.js &
-$ cd client
-$ yarn && yarn start
-```
+Minimal JWT authentication with KoaJS and React
 
 ## Server usage
 ```javascript
 // app is the koa application
 // router is the main router
-const configAuth = require('./auth');
+const Auth = require('koajs-jwt-react');
 
 // Add authentication
 const authOptions = {
@@ -23,16 +18,16 @@ const authOptions = {
     return body.password !== 'admin' ? false : body;
   }
 };
-const loginRoute = configAuth(app, authOptions);
+const loginRoute = Auth.server.configure(app, authOptions);
 router.post('/login', loginRoute);
 ```
 
 ## Client usage
 ```javascript
-import AuthService from './AuthService';
+import AuthService from 'koajs-jwt-react';
 
 // Configure authentication
-AuthService.configure({
+Auth.client.configure({
   loginUrl: 'http://localhost:3001/login',
   cookieOpts: { path: '/', maxAge: 5 * 1 },
   storageNS: 'user',
@@ -40,18 +35,18 @@ AuthService.configure({
 });
 
 // Login user
-AuthService.login(username.value, password.value)
+Auth.client.login(username.value, password.value)
   .then(data => { window.location.reload() }) // Success
   .catch(data => console.log(data) )          // Error message
 
 // Get authentication data
-AuthService.getData();
+Auth.client.getData();
 
 // Use JWT in fetch
-const headers = AuthService.getHeaders();
+const headers = Auth.client.getHeaders();
 fetch('bla', { headers }).then(...);
 
 // Logout user
-AuthService.getData();
+Auth.client.logout();
 
 ```

@@ -1,4 +1,7 @@
-import Cookies from 'universal-cookie';
+var CookiesLib = require('universal-cookie');
+
+// Isomorphic
+var Cookies = typeof CookiesLib === 'function' ? CookiesLib : CookiesLib.default; 
 
 // Setup required dependencies
 const cookies = new Cookies();
@@ -55,4 +58,4 @@ function getHeaders() {
   return headers;
 }
 
-export default { configure, login, logout, getData, getHeaders }
+module.exports = { configure, login, logout, getData, getHeaders }

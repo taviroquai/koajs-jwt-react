@@ -32,4 +32,4 @@ const configure = (koa, options) => {
   return loginRoute;
 }
 
-module.exports = configure;
+module.exports = { configure };
