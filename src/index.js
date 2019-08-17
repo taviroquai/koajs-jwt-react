@@ -1,3 +1,3 @@
-var server = require('./server/src/auth');
-var client = require('./client/src/auth');
+var server = require('./server/auth.js');
+var client = require('./client/auth.js');
 module.exports = { server, client };

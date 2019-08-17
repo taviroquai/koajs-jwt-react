@@ -15,10 +15,11 @@ const Auth = require('koajs-jwt-react');
 const options = {
   secret: 'jwt',
   maxAge: (60 * 60 * 12),
-  unless: [/^\/public/, /^\/login/],
-  validateCreateRequest: request => {
-    const { body } = request;
-    return body.password !== 'admin' ? false : body;
+  unless: [/^\/login/],
+  onLogin: ctx => {
+    const { body } = ctx.request;
+    const { username, password } = body; // Use koa-bodyparser!
+    return username === 'admin' && password === 'admin' ? body : false;
   }
 };
 const loginRoute = Auth.server.configure(app, options);
