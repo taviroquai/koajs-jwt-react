@@ -44,7 +44,9 @@ Auth.client.getData();
 
 // Use JWT in fetch
 const headers = Auth.client.getHeaders();
-fetch('bla', { headers }).then(...);
+fetch('bla', { headers })
+  .then(...) // Success - user is still logged
+  .catch(...) // Http 401/403 - user is logged out
 
 // Logout user
 Auth.client.logout();
